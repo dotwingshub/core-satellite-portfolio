@@ -223,7 +223,7 @@ function Donut({data,colors,size=108}){
   let cum=0;
   const segs=data.map((d,i)=>{
     const f=d.value/total;
-    const gap=0.012;
+    const gap=0.003;
     const dash=Math.max(0,(f-gap))*circ;
     const off=-(cum*circ)-(circ/4);
     cum+=f;
