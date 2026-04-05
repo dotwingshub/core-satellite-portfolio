@@ -213,32 +213,34 @@ function Donut({data,colors,size=108}){
   const sw=size*0.145;
   const r=(size-sw)/2;
   const cx=size/2,cy=size/2;
-  const circ=2*Math.PI*r;
   const total=data.reduce((s,d)=>s+Math.max(0,d.value||0),0);
   if(total===0) return(
     <svg width={size} height={size}>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E2E8F0" strokeWidth={sw}/>
     </svg>
   );
-  let cum=0;
+  const GAP=1.5; // セグメント間の隙間（度）
+  const toXY=(deg)=>{
+    const rad=(deg-90)*Math.PI/180;
+    return[cx+r*Math.cos(rad),cy+r*Math.sin(rad)];
+  };
+  let angle=0;
   const segs=data.map((d,i)=>{
-    const f=d.value/total;
-    const gap=0.003;
-    const dash=Math.max(0,(f-gap))*circ;
-    const off=-(cum*circ)-(circ/4);
-    cum+=f;
-    return{dash,off,color:colors[i]||"#E2E8F0"};
-  });
-  return(
-    <svg width={size} height={size}>
-      {segs.map((s,i)=>(
-        <circle key={i} cx={cx} cy={cy} r={r} fill="none"
-          stroke={s.color} strokeWidth={sw}
-          strokeDasharray={`${s.dash} ${circ}`}
-          strokeDashoffset={s.off}/>
-      ))}
-    </svg>
-  );
+    const deg=d.value/total*360;
+    const s=angle+GAP/2;
+    const e=angle+deg-GAP/2;
+    angle+=deg;
+    if(e<=s) return null;
+    const[x1,y1]=toXY(s);
+    const[x2,y2]=toXY(e);
+    const la=(e-s)>180?1:0;
+    return(
+      <path key={i}
+        d={`M ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2}`}
+        fill="none" stroke={colors[i%colors.length]} strokeWidth={sw} strokeLinecap="butt"/>
+    );
+  }).filter(Boolean);
+  return <svg width={size} height={size}>{segs}</svg>;
 }
 
 /* ─── SVGバーチャート ─── */
